@@ -131,7 +131,7 @@ st.title("🏐 バレーボールスタッツ")
 # サイドバー：選手管理
 # ───────────────────────────────────────────
 with st.sidebar:
-    st.header("👤 選手管理")
+    st.header("選手管理")
 
     with st.expander("選手を登録する"):
         num = st.text_input("背番号", placeholder="例：1", key="reg_num")
@@ -187,11 +187,11 @@ with st.sidebar:
 # ───────────────────────────────────────────
 # 試合管理
 # ───────────────────────────────────────────
-st.subheader("📅 試合管理")
+st.subheader("試合管理")
 
 with st.expander("試合を作成する"):
     new_match = st.text_input(
-        "試合名", placeholder="例：春高予選 vs ○○高校"
+        "試合名", placeholder="例：Rn高専大会-vs○○高専"
     )
     if st.button("試合を追加"):
         if new_match:
@@ -239,7 +239,7 @@ with st.expander("試合を削除する"):
 # 入力エリア
 # ───────────────────────────────────────────
 st.divider()
-st.subheader("📝 記録入力")
+st.subheader("記録入力")
 
 with st.container(border=True):
     matches = st.session_state.matches

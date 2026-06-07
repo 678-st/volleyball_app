@@ -92,7 +92,6 @@ def get_player_list():
 
 
 def calc_rates(target_df: pd.DataFrame) -> pd.DataFrame:
-    """選手×種類ごとにA率・ミス率・総数を計算"""
     if len(target_df) == 0:
         return pd.DataFrame()
     rows = []
@@ -135,16 +134,8 @@ with st.sidebar:
     st.header("👤 選手管理")
 
     with st.expander("選手を登録する"):
-        num = st.text_input(
-            "背番号",
-            placeholder="例：1",
-            key="reg_num"
-        )
-        name = st.text_input(
-            "名前",
-            placeholder="例：山田",
-            key="reg_name"
-        )
+        num = st.text_input("背番号", placeholder="例：1", key="reg_num")
+        name = st.text_input("名前", placeholder="例：山田", key="reg_name")
         if st.button("登録する", key="btn_add_player"):
             if num and name:
                 player_name = f"{num} {name}"
@@ -200,8 +191,7 @@ st.subheader("📅 試合管理")
 
 with st.expander("試合を作成する"):
     new_match = st.text_input(
-        "試合名",
-        placeholder="例：春高予選 vs ○○高校"
+        "試合名", placeholder="例：春高予選 vs ○○高校"
     )
     if st.button("試合を追加"):
         if new_match:
@@ -214,9 +204,7 @@ with st.expander("試合を作成する"):
                 "試合名": new_match,
                 "日付": datetime.now().date()
             }])
-            matches = pd.concat(
-                [matches, new_row], ignore_index=True
-            )
+            matches = pd.concat([matches, new_row], ignore_index=True)
             save_matches(matches)
             st.session_state.matches = matches
             st.success(f"「{new_match}」を追加しました")
@@ -265,27 +253,15 @@ with st.container(border=True):
         st.warning("先に選手を登録してください（左サイドバー）")
         st.stop()
 
-    selected_match = st.selectbox(
-        "試合",
-        matches["試合名"].tolist()
-    )
+    selected_match = st.selectbox("試合", matches["試合名"].tolist())
 
     col1, col2, col3, col4 = st.columns([2, 2, 1, 1])
     with col1:
-        player = st.selectbox(
-            "選手",
-            get_player_list(),
-            key="input_player"
-        )
+        player = st.selectbox("選手", get_player_list(), key="input_player")
     with col2:
         skill = st.selectbox("種類", SKILLS, key="input_skill")
     with col3:
-        grade = st.selectbox(
-            "評価",
-            GRADES,
-            format_func=lambda g: g,
-            key="input_grade"
-        )
+        grade = st.selectbox("評価", GRADES, key="input_grade")
     with col4:
         st.write("")
         record_btn = st.button(
@@ -294,10 +270,7 @@ with st.container(border=True):
             type="primary"
         )
 
-    # 評価の説明
-    st.caption(
-        "　".join([f"{g}：{GRADE_LABELS[g]}" for g in GRADES])
-    )
+    st.caption("　".join([f"{g}：{GRADE_LABELS[g]}" for g in GRADES]))
 
 if record_btn:
     selected_match_id = matches.loc[
@@ -328,7 +301,6 @@ st.divider()
 df = st.session_state.df
 total_all = len(df)
 
-# 全体メトリクス
 count_a = int((df["評価"] == "A").sum()) if total_all > 0 else 0
 rate_a = f"{count_a / total_all * 100:.1f}%" if total_all > 0 else "—"
 count_d = int((df["評価"] == "D").sum()) if total_all > 0 else 0
@@ -342,7 +314,6 @@ m4.metric("登録選手数", len(players))
 
 st.divider()
 
-# 試合フィルター
 if len(matches) > 0:
     filter_options = ["全試合"] + matches["試合名"].tolist()
     selected_analysis_match = st.selectbox(
@@ -438,7 +409,6 @@ with tab_ranking:
             )
 
             if rank_skill == "全種類":
-                # 選手ごとに集計
                 rank_rows = []
                 for player_name in sorted(filtered_df["選手"].unique()):
                     sub = filtered_df[filtered_df["選手"] == player_name]
@@ -483,7 +453,6 @@ with tab_player_tab:
         )
         player_df = filtered_df[filtered_df["選手"] == selected_player]
 
-        # 個人メトリクス
         p_total = len(player_df)
         p_a = int((player_df["評価"] == "A").sum())
         p_d = int((player_df["評価"] == "D").sum())
@@ -493,18 +462,20 @@ with tab_player_tab:
         pm3.metric("ミス率", f"{p_d/p_total*100:.1f}%" if p_total > 0 else "—")
 
         st.subheader("種類別 詳細")
+
+        # ★ 修正箇所：数値列のみで合計を計算してからA率・ミス率を追加
         result = (
             player_df.groupby(["種類", "評価"])
             .size()
             .unstack("評価", fill_value=0)
             .reindex(index=SKILLS, columns=GRADES, fill_value=0)
         )
-        # A率・ミス率を追加
+        row_totals = result[GRADES].sum(axis=1)  # A/B/C/D の数値列だけ合計
         result["A率"] = (
-            result["A"] / result.sum(axis=1) * 100
+            result["A"] / row_totals * 100
         ).round(1).astype(str) + "%"
         result["ミス率"] = (
-            result["D"] / result.sum(axis=1) * 100
+            result["D"] / row_totals * 100
         ).round(1).astype(str) + "%"
         st.dataframe(result, use_container_width=True)
 

@@ -74,7 +74,7 @@ st.title("🏐 バレーボールスタッツ")
 # ───────────────────────────────────────────
 # 試合管理
 # ───────────────────────────────────────────
-st.subheader("📅 試合管理")
+st.subheader("試合管理")
 
 with st.expander("試合を作成する"):
     new_match = st.text_input(
@@ -108,7 +108,7 @@ with st.expander("試合を作成する"):
 # 入力エリア
 # ───────────────────────────────────────────
 st.divider()
-st.subheader("📝 記録入力")
+st.subheader("記録入力")
 
 with st.container(border=True):
     matches = st.session_state.matches
